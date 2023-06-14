@@ -9,7 +9,6 @@ def lidar_cliente(cliente_socket, cliente_endereco, pasta_musicas, clientes_cone
    
     TAMANHO_PEDACO = 1024
     # tamanho do bloco em segundos  
-    BLOCO_PEDACO = 30
 
     musica_pausada = False
 
@@ -35,22 +34,14 @@ def lidar_cliente(cliente_socket, cliente_endereco, pasta_musicas, clientes_cone
             cliente_selecionado = None  # Cliente selecionado para receber a música
 
             while data:
-                if cliente_selecionado:
-                    cliente_selecionado.send(data)
-                else:
-                    for cliente in clientes_conectados:
+                for cliente in clientes_conectados:
                         cliente.send(data)
 
-                tempo_decorrido = time.time() - tempo_inicio
-
-                if tempo_decorrido >= BLOCO_PEDACO:
-                    time.sleep(BLOCO_PEDACO - tempo_decorrido % BLOCO_PEDACO)
-                    tempo_inicio = time.time()
                         
                 data = musica_dados.read(TAMANHO_PEDACO)
 
     else:
-        cliente_socket.send("404".encode())
+        cliente_socket.send("MUSIC_NOT_FOUND".encode())
 
     # Remover o cliente da lista de clientes conectados
     clientes_conectados.remove(cliente_socket)
@@ -59,21 +50,6 @@ def lidar_cliente(cliente_socket, cliente_endereco, pasta_musicas, clientes_cone
     cliente_socket.close()
     print(f"Conexão encerrada com o cliente {cliente_endereco}")
 
-
-def lidar_comando(cliente_socket, comando, clientes_conectados):
-    if comando.startswith("select"):
-        cliente_selecionado = comando.split(" ")[1]  # Extrair o nome do cliente selecionado
-        for cliente in clientes_conectados:
-            if cliente.getpeername()[1] == cliente_selecionado:
-                cliente_socket.send(f"Cliente {cliente_selecionado} selecionado para receber a música.".encode())
-                cliente_selecionado = cliente
-                break
-        else:
-            cliente_socket.send(f"Cliente {cliente_selecionado} não encontrado.".encode())
-            cliente_selecionado = None
-
-    # Retornar o cliente selecionado para tocar a música
-    return cliente_selecionado
 
 
 def inicia_server():
@@ -93,9 +69,6 @@ def inicia_server():
 
         client_thread = threading.Thread(target=lidar_cliente, args=(cliente_socket, cliente_endereco, pasta_musicas, clientes_conectados))
         client_thread.start()
-
-        comando_thread = threading.Thread(target=lidar_comando, args=(cliente_socket, comando, clientes_conectados))
-        comando_thread.start()
 
 
 inicia_server()

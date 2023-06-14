@@ -1,0 +1,1 @@
+clientes_conectados.remove(cliente_socket)

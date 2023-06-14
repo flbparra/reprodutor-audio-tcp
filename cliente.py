@@ -42,8 +42,10 @@ def iniciar_cliente():
 
     if cache_status.decode() == "200":
         print("Música encontrada no cache local.")
-    elif cache_status.decode() == "404":
+    elif cache_status.decode() == "MUSIC_NOT_FOUND":
         print("Música não encontrada no cache local. Buscando no servidor...")
+    else:
+        print("Status desconhecido")
 
     # Iniciar a reprodução da música em uma thread separada
     musica_thread = threading.Thread(target=reproduzir_musica, args=(cliente_socket,))
