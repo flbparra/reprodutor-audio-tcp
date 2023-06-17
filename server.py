@@ -79,7 +79,9 @@ def lidar_cliente(cliente_socket, cliente_endereco, clientes_enderecos, pasta_mu
         # Fechar a conexão com o cliente
         cliente_socket.close()
         print(f"Conexão encerrada com o cliente {cliente_endereco}")
-    
+
+
+
     elif escolha == "2": #Aguardando para receber música do servidor
         resposta = "Você escolheu o Serviço  Receber música"
         cliente_socket.send(resposta.encode())

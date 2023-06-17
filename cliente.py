@@ -90,7 +90,6 @@ def iniciar_cliente():
         print(cliente_socket.recv(TAMANHO_PEDACO))
         print(cliente_socket.recv(TAMANHO_PEDACO))
         
-
     elif escolha == "3":
 
         musicas_disponiveis = cliente_socket.recv(1024)
