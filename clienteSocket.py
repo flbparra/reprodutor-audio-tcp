@@ -6,7 +6,7 @@ import os
 
 TAMANHO_PEDACO = 1024
 global PASTA_CACHE
-PASTA_CACHE = r"C:\Users\parra\Desktop\redes-computadores-thiago-branch\fabio_version\cache"
+PASTA_CACHE = r"C:\Users\parra\Desktop\fabio_version\cache"
 
 def PlayInClient(cliente_socket):
     
@@ -19,7 +19,7 @@ def CheckCache(musica_escolhida):
     """Funcionalidade:
     - Verifica se a música escolhida existe no cache local"""
 
-    caminho_cache = f"C:/Users/parra/Desktop/redes-computadores-thiago-branch/fabio_version/cache/{musica_escolhida}"
+    caminho_cache = f"C:/Users/parra/Desktop/fabio_version/cache/{musica_escolhida}"
     if os.path.exists(caminho_cache):
         return True
     else:
@@ -38,7 +38,7 @@ def PlayCache(musica_escolhida):
                          output=True,
                          frames_per_buffer=CHUNK)
 
-    caminho_cache = f"C:/Users/parra/Desktop/redes-computadores-thiago-branch/fabio_version/cache/{musica_escolhida}"
+    caminho_cache = f"C:/Users/parra/Desktop/fabio_version/cache/{musica_escolhida}"
     
     try:
         #ler música escolhida
@@ -57,14 +57,13 @@ def PlayCache(musica_escolhida):
     transmissao.stop_stream()
     transmissao.close()
     p.terminate()
-    """Implementar o play do chache"""
-    pass
+
 
 def PlayAndReceive(cliente_socket, musica_escolhida):
     
     """Funcionalidades:
     - Reproduz as músicas do servidor 
-    - Guarda em cache local"""
+    - Guarda em cache local (implementar)"""
 
     CHUNK = 1024
     p = pyaudio.PyAudio()
@@ -99,15 +98,14 @@ def PlayAndReceive(cliente_socket, musica_escolhida):
 
 def StartClient():
 
-    """Melhorias:
-    - Tratar erro apos cliente enviar musica escolhida
-    Implementar:
-    - Funcionalidade para enviar música para cliente"""
+    IP = socket.gethostbyname(socket.gethostname())
+    PORT = 9888
+    ADDR = (IP, PORT)
 
     cliente_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    cliente_socket.connect(("127.0.0.1", 9999))
+    cliente_socket.connect(ADDR)
 
-    # cliente consegue ver clientes que estão online
+    #Cliente consegue ver clientes que estão online
 
     print(10 * "--")
 
@@ -135,37 +133,30 @@ def StartClient():
     time.sleep(1)
     
     if escolha == "1": 
-        
-        # recebe as lista de músicas disponiveis no servidor.
-
+        # Recuperar a lista de músicas do servidor
         musicas_disponiveis = cliente_socket.recv(1024)
         print("Lista de músicas disponíveis:")
         print(musicas_disponiveis.decode())
 
+        # Escolher uma música para reproduzir
         musica_escolhida = input("Digite o nome da música que deseja reproduzir: ")
         cliente_socket.send(musica_escolhida.encode())
-        
 
-        # checar musica em cache local (implementando)
-        
-        if CheckCache(musica_escolhida):
-            PlayCache(musica_escolhida)
+        # Verificar se a música está no cache local
+        status = cliente_socket.recv(TAMANHO_PEDACO)
 
-        else:
-            
-            status = cliente_socket.recv(TAMANHO_PEDACO)
+        if status.decode() == "200":
 
-            if status.decode() == "200":
-                print("Música encontrada no servidor.")
-                musica_thread = threading.Thread(target=PlayAndReceive, args=(cliente_socket, musica_escolhida))
-                musica_thread.start()
-            elif status.decode() == "404":
-                print("Música não encontrada no servidor.")
-                cliente_socket.close()
+            print("Música encontrada no servidor.")
 
-            # Iniciar a reprodução da música em uma thread separada
-            
+            musica_thread = threading.Thread(target=PlayAndReceive, args=(cliente_socket, musica_escolhida))
+            musica_thread.start()
     
+        elif status.decode() == "404":
+            print("Música não encontrada no servidor.")
+
+        # Iniciar a reprodução da música em uma thread separada
+        
     elif escolha == "2": 
         
         print(cliente_socket.recv(TAMANHO_PEDACO))
@@ -181,13 +172,8 @@ def StartClient():
         musica_escolhida = input("Digite o nome da música que deseja reproduzir: ")
         cliente_socket.send(musica_escolhida.encode())
 
-        msg = cliente_socket.recv(1024).decode()
-
-        print(msg)
-
-        PlayInClient(cliente_socket)
-
-        
+        musica_thread = threading.Thread(target=mandar_musica, args=(cliente_socket,))
+        musica_thread.start()
 
         pass
 
@@ -195,6 +181,7 @@ def StartClient():
         print(cliente_socket.recv(TAMANHO_PEDACO).decode())
 
     # Aguardar a reprodução da música
+    musica_thread.join()
 
     # Fechar a conexão com o servidor
     cliente_socket.close()

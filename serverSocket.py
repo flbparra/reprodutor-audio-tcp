@@ -89,8 +89,10 @@ def lidar_cliente(cliente_socket, cliente_endereco, clientes_enderecos, pasta_mu
         else:
             cliente_socket.send("404".encode())
 
+        clientes_conectados.remove(cliente_socket)
         # Fechar a conexão com o cliente
         cliente_socket.close()
+    
         print(f"Conexão encerrada com o cliente {cliente_endereco}")
 
     elif escolha == "2": #Aguardando para receber música do servidor
@@ -169,7 +171,9 @@ def lidar_cliente(cliente_socket, cliente_endereco, clientes_enderecos, pasta_mu
         clientes_conectados.remove(cliente_socket)
 
         # Fechar a conexão com o cliente
+        
         cliente_socket.close()
+
   
     else:
         resposta = "Escolha inválida. Tente novamente."
@@ -177,13 +181,16 @@ def lidar_cliente(cliente_socket, cliente_endereco, clientes_enderecos, pasta_mu
 
     
 def inicia_server():
+    IP = socket.gethostbyname(socket.gethostname())
+    PORT = 9888
+    ADDR = (IP, PORT)
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind(("127.0.0.1", 9999))
+    server_socket.bind(ADDR)
     server_socket.listen(5)
-
     print("Servidor iniciado. Aguardando conexões...")
 
-    pasta_musicas = r"C:\Users\parra\Desktop\redes-computadores-thiago-branch\fabio_version\musicas"
+
+    pasta_musicas = r"C:\Users\parra\Desktop\fabio_version\musicas"
     clientes_sockets = []
     clientes_enderecos = []
     global clientes_conectados
